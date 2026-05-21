@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>翰林版六年級　分數除法　診斷測驗</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Firebase 設定從外部 firebase-config.js 載入，本檔不含 API Key -->
+<script src="firebase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --uc:#c8401a;--ucl:#fdf0eb;
+  --green:#178a56;--greenl:#e7f6ef;
+  --red:#c82828;--redl:#fdeaea;
+  --amber:#b87010;--amberl:#fdf3e0;
+  --gray:#4e5a6a;--grayl:#f4f6f9;--graym:#dde2ea;
+  --text:#1a2130;--texts:#4e5a6a;--texth:#8a96a6;
+  --white:#fff;--r:16px;--rs:10px;--rx:22px;
+  --sh:0 3px 16px rgba(0,0,0,.09);
+}
+html,body{height:100%;font-family:'Noto Sans TC',sans-serif;background:#fff5f0;color:var(--text);font-size:16px;line-height:1.65;overflow-x:hidden}
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.active{display:flex}
+.bar{display:flex;align-items:center;gap:12px;padding:13px 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);position:sticky;top:0;z-index:50}
+.bar-main{background:linear-gradient(135deg,#8b1a06,#c8401a)}
+.bar-res{background:linear-gradient(135deg,#1a3a78,#2060cc)}
+.bar-tch{background:linear-gradient(135deg,#052e16,#166534)}
+.bar .icon{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.bar .ttl{color:#fff;font-size:16px;font-weight:700;letter-spacing:.3px}
+.bar .sub{color:rgba(255,255,255,.72);font-size:12px;margin-top:1px}
+.bar .flex1{flex:1}
+.back-btn{background:none;border:none;color:rgba(255,255,255,.85);font-size:13px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px}
+
+/* WELCOME */
+#sw .body{flex:1;padding:18px 16px 30px;display:flex;flex-direction:column;align-items:center;gap:16px;max-width:540px;margin:0 auto;width:100%}
+.w-card{background:var(--white);border-radius:var(--r);padding:24px 20px;width:100%;box-shadow:var(--sh)}
+.w-card h2{font-size:18px;font-weight:900;margin-bottom:4px}
+.w-card .desc{font-size:13.5px;color:var(--texts);margin-bottom:16px;line-height:1.75}
+.unit-pill{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--rx);font-size:13px;font-weight:700;margin-bottom:14px}
+.sub-pills{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:18px}
+.spill{padding:7px 10px;border-radius:var(--rs);font-size:12.5px;font-weight:600;text-align:center}
+label.fl{display:block;font-size:12.5px;font-weight:700;color:var(--texts);margin-bottom:5px}
+.inp{width:100%;padding:13px 15px;border:1.5px solid var(--graym);border-radius:var(--rs);font-size:16px;font-family:'Noto Sans TC',sans-serif;color:var(--text);background:var(--white);outline:none;transition:border-color .2s;margin-bottom:12px}
+.inp:focus{border-color:var(--uc)}
+.inp-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-go{width:100%;padding:16px;background:linear-gradient(135deg,#8b1a06,#c8401a);color:#fff;border:none;border-radius:var(--rs);font-size:17px;font-weight:900;font-family:'Noto Sans TC',sans-serif;cursor:pointer;letter-spacing:1px;transition:transform .15s}
+.btn-go:active{transform:scale(.97)}
+.teacher-link{background:none;border:none;color:var(--texth);font-size:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;text-decoration:underline;margin-top:6px;display:block;text-align:center}
+.qr-card{background:var(--white);border-radius:var(--r);padding:18px 20px;width:100%;box-shadow:var(--sh);text-align:center}
+.qr-card p{font-size:13px;color:var(--texts);margin-bottom:12px;font-weight:500}
+.qr-card small{display:block;font-size:10.5px;color:var(--texth);margin-top:10px;word-break:break-all}
+
+/* QUIZ */
+#sq .body{flex:1;padding:14px 14px 20px;display:flex;flex-direction:column;gap:11px;max-width:680px;margin:0 auto;width:100%}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.prog-row .qn{font-size:13px;font-weight:700;color:#fff}
+.prog-row .un{font-size:11px;color:rgba(255,255,255,.75);padding:2px 8px;background:rgba(255,255,255,.18);border-radius:20px}
+.pbar{height:6px;background:rgba(255,255,255,.25);border-radius:3px;overflow:hidden}
+.pfill{height:6px;background:#fff;border-radius:3px;transition:width .45s ease}
+.q-wrap{background:var(--white);border-radius:var(--r);padding:20px 18px;box-shadow:var(--sh)}
+.cat-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:var(--rx);font-size:12px;font-weight:700;margin-bottom:12px}
+.q-body{font-size:17.5px;font-weight:500;line-height:1.8;color:var(--text)}
+.q-body b{font-weight:900}
+.q-svg{display:flex;justify-content:center;margin:12px 0 4px}
+.q-svg svg{max-width:100%}
+.choices{display:flex;flex-direction:column;gap:9px}
+.ch{display:flex;align-items:center;gap:13px;padding:15px 17px;border:2px solid var(--graym);border-radius:var(--rs);background:var(--white);cursor:pointer;font-size:15.5px;font-family:'Noto Sans TC',sans-serif;color:var(--text);text-align:left;transition:all .15s;width:100%}
+.ch:active{transform:scale(.98)}
+.ch-lbl{width:30px;height:30px;border-radius:50%;background:var(--grayl);border:1.5px solid var(--graym);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--texts);flex-shrink:0;transition:all .15s}
+.ch:hover{border-color:var(--uc);background:var(--ucl)}
+.ch:hover .ch-lbl{background:var(--uc);color:#fff;border-color:var(--uc)}
+.ch.correct{border-color:var(--green);background:var(--greenl);pointer-events:none}
+.ch.correct .ch-lbl{background:var(--green);color:#fff;border-color:var(--green)}
+.ch.wrong{border-color:var(--red);background:var(--redl);pointer-events:none}
+.ch.wrong .ch-lbl{background:var(--red);color:#fff;border-color:var(--red)}
+.ch.dim{pointer-events:none;opacity:.55}
+.fb{border-radius:var(--rs);padding:13px 15px;font-size:13.5px;font-weight:500;display:none;align-items:flex-start;gap:10px;line-height:1.7}
+.fb.on{display:flex}
+.fb.ok{background:var(--greenl);color:#136848}
+.fb.no{background:var(--redl);color:#a02020}
+.fb-icon{font-size:22px;flex-shrink:0;line-height:1}
+.btn-nx{width:100%;padding:15px;background:linear-gradient(135deg,#8b1a06,#c8401a);color:#fff;border:none;border-radius:var(--rs);font-size:16px;font-weight:900;font-family:'Noto Sans TC',sans-serif;cursor:pointer;display:none;letter-spacing:.5px}
+.btn-nx.on{display:block}
+
+/* RESULT */
+#sr .body{flex:1;padding:14px;max-width:680px;margin:0 auto;width:100%}
+.hero{background:var(--white);border-radius:var(--r);padding:22px 18px;box-shadow:var(--sh);margin-bottom:13px;text-align:center}
+.score-ring{width:106px;height:106px;border-radius:50%;margin:0 auto 13px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:6px solid;font-weight:700}
+.score-ring .big{font-size:34px;line-height:1}
+.score-ring .sm{font-size:12px;margin-top:1px;opacity:.8}
+.rh{border-color:var(--green);color:var(--green);background:var(--greenl)}
+.rm{border-color:var(--amber);color:var(--amber);background:var(--amberl)}
+.rl{border-color:var(--red);color:var(--red);background:var(--redl)}
+.hero h2{font-size:17px;font-weight:900;margin-bottom:3px}
+.hero p{font-size:13.5px;color:var(--texts)}
+.stat3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:14px}
+.sb{background:var(--grayl);border-radius:var(--rs);padding:11px;text-align:center}
+.sb .v{font-size:23px;font-weight:900;color:var(--uc)}
+.sb .l{font-size:11px;color:var(--texth);margin-top:1px}
+.sec-hd{font-size:14.5px;font-weight:900;color:var(--text);margin:13px 0 7px 2px;display:flex;align-items:center;gap:8px}
+.sec-hd::before{content:'';width:4px;height:17px;border-radius:2px;background:var(--uc);display:inline-block}
+.cat-card{background:var(--white);border-radius:var(--r);padding:15px 17px;box-shadow:var(--sh);margin-bottom:9px}
+.cat-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.cat-nm{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;flex:1}
+.bar-bg{height:8px;background:var(--graym);border-radius:4px;flex:1;margin-left:10px;overflow:hidden}
+.bar-fg{height:8px;border-radius:4px;transition:width .6s ease}
+.cat-sc{font-size:13px;font-weight:700;white-space:nowrap;margin-left:10px}
+.wrong-list{margin-top:10px;border-top:1px solid var(--graym);padding-top:10px}
+.wi{padding:9px 11px;background:var(--redl);border-radius:var(--rs);margin-bottom:7px;font-size:13px;line-height:1.65}
+.wi .wlbl{font-size:11px;font-weight:700;color:var(--red);margin-bottom:3px}
+.di{background:var(--white);border-radius:var(--r);padding:16px 17px;box-shadow:var(--sh);margin-bottom:8px}
+.di-tags{display:flex;align-items:center;gap:6px;margin-bottom:9px;flex-wrap:wrap}
+.di-tag{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.di-q{font-size:14px;margin-bottom:9px;line-height:1.8}
+.di-ans{font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.di-exp{font-size:12.5px;color:var(--texts);margin-top:8px;padding-top:8px;border-top:1px solid var(--graym);line-height:1.7}
+.btnrow{display:flex;gap:10px;margin:13px 0 26px}
+.btn2a{flex:1;padding:13px;border:2px solid var(--uc);background:var(--white);color:var(--uc);border-radius:var(--rs);font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer}
+.btn2b{flex:1;padding:13px;background:linear-gradient(135deg,#8b1a06,#c8401a);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer}
+.fb-status{font-size:12px;padding:8px 12px;border-radius:var(--rs);margin-bottom:10px}
+.fb-status.ok{background:var(--greenl);color:var(--green)}
+.fb-status.err{background:var(--redl);color:var(--red)}
+
+/* TEACHER */
+#st .body{flex:1;padding:14px;max-width:760px;margin:0 auto;width:100%}
+.tc{background:var(--white);border-radius:var(--r);padding:17px 18px;box-shadow:var(--sh);margin-bottom:12px}
+.tc h3{font-size:15px;font-weight:900;color:var(--uc);margin-bottom:13px}
+.tc-filter{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.tc-filter select{padding:7px 10px;border:1.5px solid var(--graym);border-radius:var(--rs);font-size:13px;font-family:'Noto Sans TC',sans-serif;color:var(--text);background:var(--white);outline:none}
+.tc-filter button{padding:7px 14px;background:var(--uc);color:#fff;border:none;border-radius:var(--rs);font-size:13px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;font-weight:700}
+.sr-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--graym)}
+.sr-row:last-of-type{border-bottom:none}
+.av{width:38px;height:38px;border-radius:50%;background:var(--ucl);color:var(--uc);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.sinfo{flex:1}.sinfo .nm{font-size:14px;font-weight:700}.sinfo .mt{font-size:12px;color:var(--texts)}
+.sbadge{padding:5px 12px;border-radius:20px;font-size:13px;font-weight:700;white-space:nowrap}
+.empty{text-align:center;padding:28px;color:var(--texth);font-size:14px}
+.btn-clr{background:none;border:1.5px solid var(--red);color:var(--red);padding:8px 16px;border-radius:var(--rs);font-size:13px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-top:12px}
+.weakness-bar{margin-bottom:14px}
+.wb-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.wb-bg{height:9px;background:var(--graym);border-radius:5px;overflow:hidden}
+.wb-fg{height:9px;border-radius:5px}
+.remedy-box{margin-top:0;padding:12px 14px;background:var(--amberl);border-radius:var(--rs);font-size:13px;color:var(--amber);line-height:1.7;margin-bottom:8px}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--graym);border-top-color:var(--uc);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+#slogin .body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.login-card{background:var(--white);border-radius:var(--r);padding:30px 24px;width:100%;max-width:360px;box-shadow:var(--sh);text-align:center}
+.login-card h2{font-size:19px;font-weight:900;margin-bottom:6px}
+.login-card p{font-size:13px;color:var(--texts);margin-bottom:20px}
+@media(max-width:380px){.sub-pills{grid-template-columns:1fr}.stat3{grid-template-columns:1fr 1fr}.inp-row{grid-template-columns:1fr}}
+@media print{.bar,.btnrow,.btn-go,.teacher-link,.qr-card{display:none!important}body{background:#fff}}
+</style>
+</head>
+<body>
+
+<!-- 歡迎頁 -->
+<div id="sw" class="screen active">
+  <div class="bar bar-main">
+    <div class="icon">🔢</div>
+    <div class="flex1">
+      <div class="ttl">翰林版六年級　分數除法　診斷測驗</div>
+      <div class="sub">分數÷整數・整數÷分數・分數÷分數・生活應用</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="w-card">
+      <h2>👋 同學，準備好了嗎？</h2>
+      <p class="desc">本測驗共 <b>20 題</b>，涵蓋翰林版六年級分數除法核心概念。請誠實作答，結果幫助老師了解你的學習狀況。</p>
+      <div class="unit-pill" style="background:#fdf0eb;color:#c8401a">🔢 分數除法（20題）</div>
+      <div class="sub-pills">
+        <span class="spill" style="background:#fdf0eb;color:#c8401a">分數÷整數</span>
+        <span class="spill" style="background:#fdf0eb;color:#c8401a">整數÷分數</span>
+        <span class="spill" style="background:#fdf0eb;color:#c8401a">分數÷分數</span>
+        <span class="spill" style="background:#fdf0eb;color:#c8401a">生活應用題</span>
+      </div>
+      <div class="inp-row">
+        <div>
+          <label class="fl">班級</label>
+          <select class="inp" id="icls" style="appearance:none">
+            <option value="">請選擇班級</option>
+            <option>六年一班</option><option>六年二班</option><option>六年三班</option>
+            <option>六年四班</option><option>六年五班</option><option>六年六班</option>
+            <option>六年七班</option><option>六年八班</option><option>六年九班</option>
+            <option>六年十班</option>
+          </select>
+        </div>
+        <div>
+          <label class="fl">座號</label>
+          <input class="inp" id="iseat" type="number" placeholder="座號" min="1" max="40">
+        </div>
+      </div>
+      <button class="btn-go" onclick="startQuiz()">開始測驗 →</button>
+      <button class="teacher-link" onclick="go('slogin')">教師成績管理 / 補救分析</button>
+    </div>
+    <div class="qr-card">
+      <p>📱 掃描 QR Code 在平板上作答</p>
+      <div id="qrbox"></div>
+      <small id="qrurl"></small>
+    </div>
+  </div>
+</div>
+
+<!-- 測驗頁 -->
+<div id="sq" class="screen">
+  <div class="bar bar-main" id="q-bar">
+    <div class="icon" id="q-icon">🔢</div>
+    <div class="flex1">
+      <div class="prog-row">
+        <div class="qn" id="qcnt">1 / 20</div>
+        <div class="un" id="q-unit-tag">分數除法</div>
+      </div>
+      <div class="pbar"><div class="pfill" id="pfill" style="width:5%"></div></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="q-wrap">
+      <div id="qcat" class="cat-tag"></div>
+      <div id="qtext" class="q-body"></div>
+      <div id="qsvg" class="q-svg" style="display:none"></div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="fb" id="fb"><span class="fb-icon" id="fi"></span><div id="ft"></div></div>
+    <button class="btn-nx" id="bnnx" onclick="nextQ()">下一題 →</button>
+  </div>
+</div>
+
+<!-- 結果頁 -->
+<div id="sr" class="screen">
+  <div class="bar bar-res">
+    <div class="icon">📊</div>
+    <div class="flex1">
+      <div class="ttl">測驗結果報告</div>
+      <div class="sub" id="rname"></div>
+    </div>
+  </div>
+  <div class="body">
+    <div id="upload-status" style="display:none" class="fb-status ok"></div>
+    <div class="hero">
+      <div class="score-ring" id="sring"><div class="big" id="snum"></div><div class="sm">分</div></div>
+      <h2 id="smsg"></h2><p id="ssub"></p>
+      <div class="stat3">
+        <div class="sb"><div class="v" id="st1"></div><div class="l">答對題數</div></div>
+        <div class="sb"><div class="v" id="st2"></div><div class="l">答錯題數</div></div>
+        <div class="sb"><div class="v" id="st3"></div><div class="l">得分率</div></div>
+      </div>
+    </div>
+    <div class="sec-hd">各概念分類表現</div><div id="catrpt"></div>
+    <div class="sec-hd">錯誤題目詳解</div><div id="wrongdet"></div>
+    <div class="btnrow">
+      <button class="btn2a" onclick="window.print()">🖨 列印報告</button>
+      <button class="btn2b" onclick="resetAll()">重新作答</button>
+    </div>
+  </div>
+</div>
+
+<!-- 教師登入 -->
+<div id="slogin" class="screen">
+  <div class="bar bar-main">
+    <div class="icon">🔐</div>
+    <div class="flex1">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="ttl">教師登入</div>
+        <button class="back-btn" onclick="go('sw')">← 返回</button>
+      </div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="login-card">
+      <h2>👩‍🏫 教師專區</h2>
+      <p>請輸入密碼查看全班成績及補救教學建議</p>
+      <input class="inp" id="t-pwd" type="password" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter')teacherLogin()">
+      <button class="btn-go" onclick="teacherLogin()">進入教師看板</button>
+      <div id="login-err" style="display:none;margin-top:10px;font-size:13px;color:var(--red);text-align:center">❌ 密碼錯誤</div>
+    </div>
+  </div>
+</div>
+
+<!-- 教師看板 -->
+<div id="st" class="screen">
+  <div class="bar bar-tch">
+    <div class="icon">👩‍🏫</div>
+    <div class="flex1">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="ttl">教師成績管理</div>
+        <button class="back-btn" onclick="go('sw')">← 返回</button>
+      </div>
+      <div class="sub">翰林版六年級 分數除法 補救分析</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="tc">
+      <h3>🔍 篩選條件</h3>
+      <div class="tc-filter">
+        <select id="t-cls-filter">
+          <option value="">所有班級</option>
+          <option>六年一班</option><option>六年二班</option><option>六年三班</option>
+          <option>六年四班</option><option>六年五班</option><option>六年六班</option>
+          <option>六年七班</option><option>六年八班</option><option>六年九班</option>
+          <option>六年十班</option>
+        </select>
+        <button onclick="loadTeacherData()">🔄 載入資料</button>
+        <span id="t-loading" style="display:none;font-size:13px;color:var(--texth)"><span class="spin"></span>載入中...</span>
+      </div>
+      <div id="t-fb-note" style="font-size:12px;color:var(--texth);margin-top:4px"></div>
+    </div>
+    <div class="tc"><h3>📋 學生作答記錄</h3><div id="tlist"></div></div>
+    <div class="tc"><h3>🎯 全班弱點分析</h3><div id="tweak"></div></div>
+    <div class="tc"><h3>📌 補救教學建議</h3><div id="tremed"></div></div>
+  </div>
+</div>
+
+<script>
+// ══ Firebase 設定（從外部 firebase-config.js 讀取）══
+const TEACHER_PASSWORD = "teacher123";
+const COLLECTION = "mathQuiz_fraction_div";
+const TOTAL_Q = 20;
+
+let db = null, useFirebase = false;
+let curQ = 0, answers = [], stu = {}, answered = false;
+
+function initFirebase() {
+  const cfg = (typeof FIREBASE_CONFIG !== 'undefined') ? FIREBASE_CONFIG : null;
+  if (!cfg || !cfg.apiKey) return;
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(cfg);
+    db = firebase.firestore();
+    useFirebase = true;
+  } catch(e) { console.error('Firebase:', e); }
+}
+
+// ══ 補救教學建議 ══
+const REMEDY_MAP = {
+  '分數÷整數': '分數除以整數，先確認整數是否為 0，再把整數換成倒數後相乘（即乘以 1/n）。建議用圖示（色塊分割）幫助學生直觀理解「把一個分數等分」的概念，再過渡到算式操作。',
+  '整數÷分數': '整數除以分數，關鍵是「除以一個分數＝乘以該分數的倒數」。建議先用具體情境（如：2公尺的繩子，每段3/4公尺，可以剪幾段？）建立直觀理解，再引導學生寫出倒數相乘的算式。',
+  '分數÷分數': '分數除以分數，直接將除數化成倒數後相乘即可。容易犯的錯誤是把被除數的分子分母也倒過來，或忘記化簡。建議要求學生每次計算後都要確認答案是否已化為最簡分數。',
+  '生活應用題': '應用題先找「誰÷誰」，判斷是分成幾份（÷整數）還是一份有多少（÷分數）。建議訓練學生畫線段圖輔助理解題意，確認單位後再列算式，最後驗算答案是否合理（如答案不可能是負數或過大）。',
+};
+
+// ══ 題目資料（20題，無提示）══
+const QS = [
+  // ── 分數÷整數（第1–5題）──────────────────────────
+  {
+    id:1, sub:'分數÷整數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>6/7 ÷ 3</b> ＝ ？',
+    svg:null,
+    choices:['A. 18/7','B. 2/7','C. 6/21','D. 3/7'],
+    ans:1,
+    exp:'6/7 ÷ 3 ＝ 6/7 × 1/3 ＝ 6/21 ＝ <b>2/7</b>。分數除以整數等於乘以該整數的倒數，再化簡。'
+  },
+  {
+    id:2, sub:'分數÷整數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>4/5 ÷ 8</b> ＝ ？',
+    svg:null,
+    choices:['A. 32/5','B. 1/10','C. 4/40','D. 2/5'],
+    ans:1,
+    exp:'4/5 ÷ 8 ＝ 4/5 × 1/8 ＝ 4/40 ＝ <b>1/10</b>。分子分母各約分：4÷4=1，40÷4=10。'
+  },
+  {
+    id:3, sub:'分數÷整數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>9/4 ÷ 6</b> ＝ ？',
+    svg:null,
+    choices:['A. 54/4','B. 9/24','C. 3/8','D. 2/3'],
+    ans:2,
+    exp:'9/4 ÷ 6 ＝ 9/4 × 1/6 ＝ 9/24 ＝ <b>3/8</b>。9與24的最大公因數是3，約分後得3/8。'
+  },
+  {
+    id:4, sub:'分數÷整數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>5/6 ÷ 5</b> ＝ ？',
+    svg:null,
+    choices:['A. 25/6','B. 5/30','C. 1/5','D. 1/6'],
+    ans:3,
+    exp:'5/6 ÷ 5 ＝ 5/6 × 1/5 ＝ 5/30 ＝ <b>1/6</b>。分子5被除數5約掉，分母不變。'
+  },
+  {
+    id:5, sub:'分數÷整數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>7/12 ÷ 14</b> ＝ ？',
+    svg:null,
+    choices:['A. 7/168','B. 1/12','C. 1/24','D. 7/2'],
+    ans:2,
+    exp:'7/12 ÷ 14 ＝ 7/12 × 1/14 ＝ 7/168 ＝ <b>1/24</b>。7與168的最大公因數是7，約分後得1/24。'
+  },
+
+  // ── 整數÷分數（第6–10題）────────────────────────
+  {
+    id:6, sub:'整數÷分數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>4 ÷ 2/3</b> ＝ ？',
+    svg:null,
+    choices:['A. 8/3','B. 6','C. 8/12','D. 2/3'],
+    ans:1,
+    exp:'4 ÷ 2/3 ＝ 4 × 3/2 ＝ 12/2 ＝ <b>6</b>。整數除以分數，乘以該分數的倒數（3/2）。'
+  },
+  {
+    id:7, sub:'整數÷分數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>5 ÷ 5/6</b> ＝ ？',
+    svg:null,
+    choices:['A. 25/6','B. 5/6','C. 6','D. 1/6'],
+    ans:2,
+    exp:'5 ÷ 5/6 ＝ 5 × 6/5 ＝ 30/5 ＝ <b>6</b>。5與分子5約掉，只剩6。'
+  },
+  {
+    id:8, sub:'整數÷分數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>3 ÷ 3/4</b> ＝ ？',
+    svg:null,
+    choices:['A. 9/4','B. 4','C. 3/4','D. 12'],
+    ans:1,
+    exp:'3 ÷ 3/4 ＝ 3 × 4/3 ＝ 12/3 ＝ <b>4</b>。3與分子3約掉，只剩4。'
+  },
+  {
+    id:9, sub:'整數÷分數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>8 ÷ 4/5</b> ＝ ？',
+    svg:null,
+    choices:['A. 32/5','B. 2/5','C. 10','D. 40'],
+    ans:2,
+    exp:'8 ÷ 4/5 ＝ 8 × 5/4 ＝ 40/4 ＝ <b>10</b>。8與分母4約掉（8÷4＝2），再乘以5得10。'
+  },
+  {
+    id:10, sub:'整數÷分數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>6 ÷ 2/7</b> ＝ ？',
+    svg:null,
+    choices:['A. 12/7','B. 21','C. 42/7','D. 3/7'],
+    ans:1,
+    exp:'6 ÷ 2/7 ＝ 6 × 7/2 ＝ 42/2 ＝ <b>21</b>。6與分子2約掉（6÷2＝3），再乘以7得21。'
+  },
+
+  // ── 分數÷分數（第11–15題）────────────────────────
+  {
+    id:11, sub:'分數÷分數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>2/3 ÷ 4/9</b> ＝ ？',
+    svg:null,
+    choices:['A. 8/27','B. 3/2','C. 18/12','D. 6/4'],
+    ans:1,
+    exp:'2/3 ÷ 4/9 ＝ 2/3 × 9/4 ＝ 18/12 ＝ <b>3/2</b>（即1又1/2）。化簡18/12，最大公因數6，得3/2。'
+  },
+  {
+    id:12, sub:'分數÷分數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>5/8 ÷ 15/16</b> ＝ ？',
+    svg:null,
+    choices:['A. 75/128','B. 2/3','C. 3/2','D. 80/120'],
+    ans:1,
+    exp:'5/8 ÷ 15/16 ＝ 5/8 × 16/15 ＝ 80/120 ＝ <b>2/3</b>。80與120的最大公因數40，約分得2/3。'
+  },
+  {
+    id:13, sub:'分數÷分數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>7/10 ÷ 7/5</b> ＝ ？',
+    svg:null,
+    choices:['A. 1/2','B. 2','C. 49/50','D. 7/2'],
+    ans:0,
+    exp:'7/10 ÷ 7/5 ＝ 7/10 × 5/7 ＝ 35/70 ＝ <b>1/2</b>。分子7和7約掉，5和10約掉，得1/2。'
+  },
+  {
+    id:14, sub:'分數÷分數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>3/4 ÷ 9/8</b> ＝ ？',
+    svg:null,
+    choices:['A. 27/32','B. 3/2','C. 2/3','D. 8/12'],
+    ans:2,
+    exp:'3/4 ÷ 9/8 ＝ 3/4 × 8/9 ＝ 24/36 ＝ <b>2/3</b>。24與36的最大公因數12，約分得2/3。'
+  },
+  {
+    id:15, sub:'分數÷分數',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'計算：<b>4/7 ÷ 8/21</b> ＝ ？',
+    svg:null,
+    choices:['A. 32/147','B. 3/2','C. 12/7','D. 3'],
+    ans:3,
+    exp:'4/7 ÷ 8/21 ＝ 4/7 × 21/8 ＝ 84/56 ＝ <b>3/2</b>。化簡84/56，最大公因數28得3/2。哎，再算一次：4×21＝84，7×8＝56，84÷28＝3，56÷28＝2，答案是3/2。但選項D是3，應確認。修正：4/7×21/8，4和8約掉得1/2，7和21約掉得1/3，所以是(1×3)/(2×1)＝3/2。最近答案應是B:3/2，但此處標ans:3是D.3，請修正如下。'
+  },
+  {
+    id:16, sub:'生活應用題',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'一條繩子長 <b>8/9 公尺</b>，每段剪 <b>2/9 公尺</b>，可以剪幾段？',
+    svg:null,
+    choices:['A. 3段','B. 4段','C. 16/81段','D. 2段'],
+    ans:1,
+    exp:'8/9 ÷ 2/9 ＝ 8/9 × 9/2 ＝ 72/18 ＝ <b>4段</b>。分母相同時，直接用分子相除也可：8÷2＝4。'
+  },
+  {
+    id:17, sub:'生活應用題',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'媽媽有 <b>3/4 公斤</b>麵粉，每次做餅乾用 <b>1/8 公斤</b>，可以做幾次？',
+    svg:null,
+    choices:['A. 3/32次','B. 5次','C. 6次','D. 8次'],
+    ans:2,
+    exp:'3/4 ÷ 1/8 ＝ 3/4 × 8/1 ＝ 24/4 ＝ <b>6次</b>。3/4公斤裡面有6個1/8公斤。'
+  },
+  {
+    id:18, sub:'生活應用題',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'一桶水有 <b>5 公升</b>，每瓶裝 <b>5/6 公升</b>，最多可以裝滿幾瓶？',
+    svg:null,
+    choices:['A. 5/6瓶','B. 25/6瓶','C. 6瓶','D. 5瓶'],
+    ans:2,
+    exp:'5 ÷ 5/6 ＝ 5 × 6/5 ＝ 30/5 ＝ <b>6瓶</b>。5公升可以裝滿6瓶（每瓶5/6公升）。'
+  },
+  {
+    id:19, sub:'生活應用題',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'小明跑步 <b>2/3 小時</b>共跑了 <b>4 公里</b>，他每小時跑幾公里？',
+    svg:null,
+    choices:['A. 8/3公里','B. 4公里','C. 6公里','D. 3公里'],
+    ans:2,
+    exp:'4 ÷ 2/3 ＝ 4 × 3/2 ＝ 12/2 ＝ <b>6公里</b>。以距離除以時間求速度，每小時跑6公里。'
+  },
+  {
+    id:20, sub:'生活應用題',
+    uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+    text:'一塊布長 <b>7/8 公尺</b>，做一個玩偶需要 <b>7/16 公尺</b>，這塊布最多可以做幾個玩偶？',
+    svg:null,
+    choices:['A. 1個','B. 2個','C. 49/128個','D. 3個'],
+    ans:1,
+    exp:'7/8 ÷ 7/16 ＝ 7/8 × 16/7 ＝ 112/56 ＝ <b>2個</b>。分子7和7約掉，16和8約掉得2，答案是2個。'
+  },
+];
+
+// 修正第15題（分數÷分數最後一題）
+QS[14] = {
+  id:15, sub:'分數÷分數',
+  uc:{bg:'#fdf0eb',c:'#c8401a'}, ui:'🔢',
+  text:'計算：<b>4/7 ÷ 8/21</b> ＝ ？',
+  svg:null,
+  choices:['A. 32/147','B. 3/2','C. 12/7','D. 14/24'],
+  ans:1,
+  exp:'4/7 ÷ 8/21 ＝ 4/7 × 21/8。先約分：4和8的公因數4→1和2；7和21的公因數7→1和3。所以＝（1×3）/（1×2）＝ <b>3/2</b>。'
+};
+
+// ══ 核心邏輯 ════════════════════════════════
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function startQuiz() {
+  const cls = document.getElementById('icls').value;
+  const seat = document.getElementById('iseat').value;
+  if(!cls){ alert('請選擇班級！'); return; }
+  if(!seat){ alert('請輸入座號！'); return; }
+  stu = {cls, seat, time:new Date().toLocaleString('zh-TW')};
+  answers = []; curQ = 0;
+  loadQ(0); go('sq');
+}
+
+function loadQ(idx) {
+  answered = false;
+  const q = QS[idx];
+  const pct = Math.round((idx+1)/TOTAL_Q*100);
+  document.getElementById('qcnt').textContent = (idx+1)+' / '+TOTAL_Q;
+  document.getElementById('pfill').style.width = pct+'%';
+  document.getElementById('q-unit-tag').textContent = '分數除法';
+  const tag = document.getElementById('qcat');
+  tag.textContent = '分數除法 · '+q.sub;
+  tag.style.background = q.uc.bg; tag.style.color = q.uc.c;
+  document.getElementById('qtext').innerHTML = q.text;
+  const svgEl = document.getElementById('qsvg');
+  if(q.svg){ svgEl.innerHTML = q.svg; svgEl.style.display='flex'; }
+  else { svgEl.innerHTML=''; svgEl.style.display='none'; }
+  const cc = document.getElementById('choices');
+  cc.innerHTML = '';
+  q.choices.forEach((ch,i)=>{
+    const b = document.createElement('button');
+    b.className = 'ch';
+    b.innerHTML = `<span class="ch-lbl">${['A','B','C','D'][i]}</span><span>${ch.slice(3)}</span>`;
+    b.onclick = ()=>pick(i);
+    cc.appendChild(b);
+  });
+  document.getElementById('fb').className='fb';
+  document.getElementById('bnnx').className='btn-nx';
+}
+
+function pick(idx) {
+  if(answered) return;
+  answered = true;
+  const q = QS[curQ];
+  const ok = idx === q.ans;
+  answers.push({id:q.id,sub:q.sub,unit:'分數除法',uc:q.uc,text:q.text,correct:ok,
+    chosenIdx:idx,rightIdx:q.ans,chosen:q.choices[idx],right:q.choices[q.ans],exp:q.exp});
+  document.querySelectorAll('.ch').forEach((b,i)=>{
+    if(i===q.ans) b.classList.add('correct');
+    else if(i===idx&&!ok) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  const fbEl = document.getElementById('fb');
+  document.getElementById('fi').textContent = ok?'✅':'❌';
+  document.getElementById('ft').innerHTML = ok
+    ?'答對了！<br><span style="font-size:12.5px;opacity:.85">'+q.exp+'</span>'
+    :'答錯了，加油！<br><span style="font-size:12.5px">'+q.exp+'</span>';
+  fbEl.className = 'fb on '+(ok?'ok':'no');
+  const nx = document.getElementById('bnnx');
+  nx.className = 'btn-nx on';
+  nx.textContent = curQ < TOTAL_Q-1 ? '下一題 →' : '查看結果 →';
+}
+
+function nextQ() {
+  curQ++;
+  if(curQ >= TOTAL_Q) showResult();
+  else loadQ(curQ);
+}
+
+async function showResult() {
+  const corr = answers.filter(a=>a.correct).length;
+  const score = Math.round(corr/TOTAL_Q*100);
+  document.getElementById('rname').textContent = `${stu.cls} ${stu.seat}號 ｜ ${stu.time}`;
+  document.getElementById('snum').textContent = score;
+  document.getElementById('st1').textContent = corr;
+  document.getElementById('st2').textContent = TOTAL_Q-corr;
+  document.getElementById('st3').textContent = score+'%';
+  const ring = document.getElementById('sring');
+  ring.className='score-ring '+(score>=80?'rh':score>=60?'rm':'rl');
+  const msgs = score>=80?['🌟 表現優秀！','分數除法概念掌握良好！']:
+    score>=60?['👍 繼續加油！','部分計算步驟需要再練習。']:['💪 需要加強！','建議老師安排補救教學。'];
+  document.getElementById('smsg').textContent = msgs[0];
+  document.getElementById('ssub').textContent = msgs[1];
+
+  // 各概念分類表現
+  const subs = ['分數÷整數','整數÷分數','分數÷分數','生活應用題'];
+  const catRpt = document.getElementById('catrpt');
+  catRpt.innerHTML = '';
+  subs.forEach(sub=>{
+    const subAs = answers.filter(a=>a.sub===sub);
+    const sc = subAs.filter(a=>a.correct).length;
+    const pct = subAs.length?Math.round(sc/subAs.length*100):0;
+    const col = pct>=80?'#178a56':pct>=60?'#b87010':'#c82828';
+    const wrong = subAs.filter(a=>!a.correct);
+    const div = document.createElement('div');
+    div.className = 'cat-card';
+    div.innerHTML = `<div class="cat-hd">
+      <div class="cat-nm"><span>${sub}</span><div class="bar-bg"><div class="bar-fg" style="width:${pct}%;background:${col}"></div></div></div>
+      <div class="cat-sc" style="color:${col}">${sc}/${subAs.length} 題</div>
+    </div>`+(wrong.length?`<div class="wrong-list">`+
+      wrong.map(a=>`<div class="wi"><div class="wlbl">第${a.id}題</div>
+        你的答案：<span style="color:var(--red)">${a.chosen}</span>　正確答案：<span style="color:var(--green)">${a.right}</span></div>`).join('')+'</div>':'');
+    catRpt.appendChild(div);
+  });
+
+  // 錯誤詳解
+  const wrongAll = answers.filter(a=>!a.correct);
+  const wd = document.getElementById('wrongdet');
+  wd.innerHTML = wrongAll.length ? wrongAll.map(a=>`<div class="di">
+    <div class="di-tags">
+      <span class="di-tag" style="background:#fdf0eb;color:#c8401a">第${a.id}題｜${a.sub}</span>
+    </div>
+    <div class="di-q">${a.text}</div>
+    <div class="di-ans">
+      <span style="background:#fdeaea;color:#c82828;padding:3px 10px;border-radius:20px;font-size:13px;font-weight:700">✗ ${a.chosen}</span>
+      <span style="color:#8a96a6">→</span>
+      <span style="background:#e7f6ef;color:#178a56;padding:3px 10px;border-radius:20px;font-size:13px;font-weight:700">✓ ${a.right}</span>
+    </div>
+    <div class="di-exp">📝 ${a.exp}</div>
+  </div>`).join('') : '<div style="text-align:center;padding:18px;color:#178a56;font-weight:900;font-size:16px">🎉 全部答對！非常棒！</div>';
+
+  // Firebase 上傳
+  const wrongSubs = wrongAll.map(a=>({sub:a.sub,unit:'分數除法'}));
+  const record = {
+    cls:stu.cls, seat:parseInt(stu.seat),
+    timestamp:useFirebase?firebase.firestore.FieldValue.serverTimestamp():null,
+    localTime:stu.time, score, correct:corr, totalQ:TOTAL_Q,
+    answers:answers.map(a=>({id:a.id,sub:a.sub,unit:'分數除法',correct:a.correct,chosenIdx:a.chosenIdx,rightIdx:a.rightIdx})),
+    wrongSubs,
+    subScores:{
+      '分數÷整數':answers.filter(a=>a.sub==='分數÷整數'&&a.correct).length,
+      '整數÷分數':answers.filter(a=>a.sub==='整數÷分數'&&a.correct).length,
+      '分數÷分數':answers.filter(a=>a.sub==='分數÷分數'&&a.correct).length,
+      '生活應用題':answers.filter(a=>a.sub==='生活應用題'&&a.correct).length,
+    }
+  };
+  const statusEl = document.getElementById('upload-status');
+  if(useFirebase){
+    try{
+      await db.collection(COLLECTION).add(record);
+      statusEl.textContent='✅ 作答記錄已上傳雲端，老師可在教師看板查閱';
+      statusEl.className='fb-status ok'; statusEl.style.display='block';
+    }catch(e){
+      statusEl.textContent='⚠️ 雲端上傳失敗，記錄已儲存於本機';
+      statusEl.className='fb-status err'; statusEl.style.display='block';
+      saveLocal(record);
+    }
+  } else { statusEl.style.display='none'; saveLocal(record); }
+  go('sr');
+}
+
+function saveLocal(r){
+  const recs=JSON.parse(localStorage.getItem('fracDivRecs')||'[]');
+  recs.push(r); localStorage.setItem('fracDivRecs',JSON.stringify(recs));
+}
+
+// ══ 教師看板 ════════════════════════════════
+function teacherLogin(){
+  const pwd = document.getElementById('t-pwd').value;
+  if(pwd===TEACHER_PASSWORD){
+    document.getElementById('login-err').style.display='none';
+    document.getElementById('t-pwd').value='';
+    go('st'); loadTeacherData();
+  } else {
+    document.getElementById('login-err').style.display='block';
+  }
+}
+
+async function loadTeacherData(){
+  const cls = document.getElementById('t-cls-filter').value;
+  document.getElementById('t-loading').style.display='inline';
+  document.getElementById('t-fb-note').textContent='';
+  let recs=[];
+  if(useFirebase){
+    try{
+      let q=db.collection(COLLECTION).orderBy('timestamp','desc').limit(500);
+      if(cls) q=db.collection(COLLECTION).where('cls','==',cls).orderBy('timestamp','desc').limit(500);
+      const snap=await q.get();
+      recs=snap.docs.map(d=>({id:d.id,...d.data()}));
+      document.getElementById('t-fb-note').textContent='📡 資料來源：Firebase 雲端';
+    }catch(e){
+      recs=getLocalRecs(cls);
+      document.getElementById('t-fb-note').textContent='⚠️ 雲端失敗，顯示本機資料';
+    }
+  } else {
+    recs=getLocalRecs(cls);
+    document.getElementById('t-fb-note').textContent='💾 本機模式（請確認 firebase-config.js 在同目錄）';
+  }
+  document.getElementById('t-loading').style.display='none';
+  renderTeacher(recs, cls);
+}
+
+function getLocalRecs(cls){
+  const all=JSON.parse(localStorage.getItem('fracDivRecs')||'[]');
+  return cls?all.filter(r=>r.cls===cls):all;
+}
+
+function renderTeacher(recs, cls){
+  // 學生記錄列表
+  const tl=document.getElementById('tlist');
+  if(!recs.length){
+    tl.innerHTML=`<div class="empty">📭 尚無學生作答記錄${cls?' ('+cls+')':''}</div>`;
+  } else {
+    tl.innerHTML=recs.map(r=>{
+      const c=r.score>=80?'#178a56':r.score>=60?'#b87010':'#c82828';
+      const bg=r.score>=80?'#e7f6ef':r.score>=60?'#fdf3e0':'#fdeaea';
+      const time=r.localTime||(r.timestamp?.toDate?r.timestamp.toDate().toLocaleString('zh-TW'):'');
+      const shortCls=r.cls?r.cls.replace('六年','6/').replace('班',''):'';
+      const ss=r.subScores||{};
+      return `<div class="sr-row">
+        <div class="av">${shortCls}</div>
+        <div class="sinfo"><div class="nm">${r.cls} ${r.seat}號</div>
+          <div class="mt">${time}　÷整:${ss['分數÷整數']??'-'}/5　整÷:${ss['整數÷分數']??'-'}/5　÷分:${ss['分數÷分數']??'-'}/5　應用:${ss['生活應用題']??'-'}/5</div></div>
+        <div class="sbadge" style="color:${c};background:${bg}">${r.score}分</div>
+      </div>`;
+    }).join('')+(!useFirebase?'<button class="btn-clr" onclick="clearRecs()">清除本機記錄</button>':'');
+  }
+
+  // 弱點分析
+  const subs=['分數÷整數','整數÷分數','分數÷分數','生活應用題'];
+  const allWrong=recs.flatMap(r=>r.wrongSubs||[]);
+  const subCnt={};
+  subs.forEach(s=>{ subCnt[s]=0; });
+  allWrong.forEach(({sub})=>{ if(subCnt[sub]!==undefined) subCnt[sub]++; });
+  const total=recs.length||1;
+  const tw=document.getElementById('tweak');
+  if(!recs.length){
+    tw.innerHTML='<div class="empty">暫無資料</div>';
+  } else {
+    tw.innerHTML=`<div style="font-size:12px;color:var(--texth);margin-bottom:10px">共 ${recs.length} 筆記錄${cls?' ('+cls+')':''}</div>`+
+      subs.map(sub=>{
+        const n=subCnt[sub];
+        const pct=Math.round(n/Math.max(...Object.values(subCnt),1)*100);
+        const col=pct>66?'#c82828':pct>33?'#b87010':'#178a56';
+        return `<div class="weakness-bar">
+          <div class="wb-row">
+            <span style="font-weight:700">${sub}</span>
+            <span style="color:${col};font-weight:700">錯誤 ${n} 次（${Math.round(n/total*100)}% 學生）</span>
+          </div>
+          <div class="wb-bg"><div class="wb-fg" style="width:${pct}%;background:${col}"></div></div>
+        </div>`;
+      }).join('');
+  }
+
+  // 補救建議
+  const tr=document.getElementById('tremed');
+  const sorted=subs.map(s=>({sub:s,n:subCnt[s]})).sort((a,b)=>b.n-a.n);
+  const top3=sorted.filter(s=>s.n>0).slice(0,3);
+  if(!top3.length){
+    tr.innerHTML='<div class="empty">暫無資料</div>';
+  } else {
+    tr.innerHTML='<div style="margin-bottom:12px;font-size:13.5px;line-height:1.8">根據錯誤分析，建議優先針對以下概念安排補救教學：</div>'+
+      top3.map((s,i)=>`<div class="remedy-box">
+        <b>${['🥇','🥈','🥉'][i]} 優先補救：${s.sub}</b>（共錯 ${s.n} 次）<br>
+        ${REMEDY_MAP[s.sub]||'建議安排額外練習題。'}
+      </div>`).join('');
+  }
+}
+
+function clearRecs(){
+  if(confirm('確定清除所有本機學生記錄？')){
+    localStorage.removeItem('fracDivRecs'); loadTeacherData();
+  }
+}
+
+function resetAll(){
+  document.getElementById('icls').value='';
+  document.getElementById('iseat').value='';
+  go('sw');
+}
+
+window.addEventListener('load',()=>{
+  initFirebase();
+  go('sw');
+  const url=window.location.href;
+  document.getElementById('qrurl').textContent=url.length>60?url.slice(0,60)+'…':url;
+  if(typeof QRCode!=='undefined'){
+    new QRCode(document.getElementById('qrbox'),{
+      text:url,width:120,height:120,
+      colorDark:'#c8401a',colorLight:'#ffffff',
+      correctLevel:QRCode.CorrectLevel.M
+    });
+  }
+});
+</script>
+</body>
+</html>
