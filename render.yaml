@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: hanlin-fraction-division-online
+    runtime: python
+    buildCommand: ""
+    startCommand: "python server.py"
+    healthCheckPath: /healthz
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DB_PATH
+        value: /var/data/quiz_records.sqlite3
+    disk:
+      name: quiz-records
+      mountPath: /var/data
+      sizeGB: 1
