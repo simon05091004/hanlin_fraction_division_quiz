@@ -6,8 +6,6 @@
 <title>翰林版六年級　分數除法　診斷測驗</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<!-- Firebase 設定從外部 firebase-config.js 載入，本檔不含 API Key -->
-<script src="firebase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.min.js"></script>
 <style>
@@ -152,6 +150,9 @@ label.fl{display:block;font-size:12.5px;font-weight:700;color:var(--texts);margi
 .login-card p{font-size:13px;color:var(--texts);margin-bottom:20px}
 @media(max-width:380px){.sub-pills{grid-template-columns:1fr}.stat3{grid-template-columns:1fr 1fr}.inp-row{grid-template-columns:1fr}}
 @media print{.bar,.btnrow,.btn-go,.teacher-link,.qr-card{display:none!important}body{background:#fff}}
+
+.teacher-dash-link{display:block;text-align:center;margin-top:8px;font-size:12.5px;font-weight:700;color:#1a50b8;text-decoration:none;padding:8px;border:1.5px solid #1a50b8;border-radius:8px;transition:all .15s;}
+.teacher-dash-link:hover{background:#ebf2fd;}
 </style>
 </head>
 <body>
@@ -194,6 +195,7 @@ label.fl{display:block;font-size:12.5px;font-weight:700;color:var(--texts);margi
       </div>
       <button class="btn-go" onclick="startQuiz()">開始測驗 →</button>
       <button class="teacher-link" onclick="go('slogin')">教師成績管理 / 補救分析</button>
+      <a href="teacher_dashboard.html" class="teacher-dash-link">📊 教師成績查詢（總覽）</a>
     </div>
     <div class="qr-card">
       <p>📱 掃描 QR Code 在平板上作答</p>
@@ -321,14 +323,13 @@ const TOTAL_Q = 20;
 let db = null, useFirebase = false;
 let curQ = 0, answers = [], stu = {}, answered = false;
 
-function initFirebase() {
-  const cfg = (typeof FIREBASE_CONFIG !== 'undefined') ? FIREBASE_CONFIG : null;
-  if (!cfg || !cfg.apiKey) return;
-  try {
-    if (!firebase.apps.length) firebase.initializeApp(cfg);
-    db = firebase.firestore();
-    useFirebase = true;
-  } catch(e) { console.error('Firebase:', e); }
+function initFB(){
+  try{
+    const c={apiKey:"AIzaSyC9lemHX8VEk7DiszkanLWGZjXB4TlCJKs",authDomain:"math-5-6.firebaseapp.com",projectId:"math-5-6",storageBucket:"math-5-6.firebasestorage.app",messagingSenderId:"791241827089",appId:"1:791241827089:web:d33aec52c2bd1f59b322b0",measurementId:"G-EW3ZB5YZKW"};
+    if(!firebase.apps.length)firebase.initializeApp(c);
+    db=firebase.firestore();useFB=true;
+  }catch(e){console.error('Firebase:',e);}
+} catch(e) { console.error('Firebase:', e); }
 }
 
 // ══ 補救教學建議 ══
